@@ -17,7 +17,7 @@ public class NioChannelEchoClient {
         ExecutorService executorService = Executors.newFixedThreadPool(10);
 //        BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
 //        String message;
-        String[] messages = {"Daniel", "Lapets", "Sky"};
+        String[] messages = {"Testing 01", "Testing 02", "Testing 03"};
 
 //        while ((message = stdIn.readLine()) != null) {
         for (String message : messages) {
