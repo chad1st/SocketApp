@@ -9,6 +9,8 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class NioSelectorEchoServer {
 
@@ -17,6 +19,7 @@ public class NioSelectorEchoServer {
     public static void main(String[] args) throws IOException, InterruptedException {
         ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
         serverSocketChannel.configureBlocking(false);
+        ExecutorService executorService= Executors.newFixedThreadPool(3);
 
         serverSocketChannel.bind(new InetSocketAddress("localhost", 7000));
         System.out.println("Echo server started: {}" + serverSocketChannel);
@@ -31,17 +34,30 @@ public class NioSelectorEchoServer {
             Iterator<SelectionKey> keysIterator = selector.selectedKeys().iterator();
             while (keysIterator.hasNext()) {
                 SelectionKey key = keysIterator.next();
-
                 if (key.isAcceptable()) {
                     accept(selector, key);
                 }
                 if (key.isReadable()) {
                     keysIterator.remove();
-                    read(selector, key);
+                    executorService.submit(()->{
+                        try {
+                            read(selector, key);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
                 }
                 if (key.isWritable()) {
                     keysIterator.remove();
-                    write(selector, key);
+                    executorService.submit(()->{
+                        try {
+                            write(selector, key);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
                 }
             }
         }
@@ -68,8 +84,8 @@ public class NioSelectorEchoServer {
         int read = socketChannel.read(buffer); // can be non-blocking
         System.out.println("Echo server read: {} byte(s)" + read);
 
-        if(read<0)
-            active=false;
+//        if(read<0)
+//            active=false;
 
         buffer.flip();
         byte[] bytes = new byte[buffer.limit()];
