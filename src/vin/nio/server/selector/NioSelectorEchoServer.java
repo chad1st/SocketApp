@@ -14,7 +14,7 @@ public class NioSelectorEchoServer {
 
     private static boolean active = true;
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
         ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
         serverSocketChannel.configureBlocking(false);
 
@@ -46,7 +46,7 @@ public class NioSelectorEchoServer {
             }
         }
 
-//        serverSocketChannel.close();
+        serverSocketChannel.close();
         System.out.println("Echo server finished");
     }
 
@@ -61,21 +61,24 @@ public class NioSelectorEchoServer {
         }
     }
 
-    private static void read(Selector selector, SelectionKey key) throws IOException {
+    private static void read(Selector selector, SelectionKey key) throws IOException, InterruptedException {
         SocketChannel socketChannel = (SocketChannel) key.channel();
 
         ByteBuffer buffer = ByteBuffer.allocate(1024);
         int read = socketChannel.read(buffer); // can be non-blocking
         System.out.println("Echo server read: {} byte(s)" + read);
 
+        if(read<0)
+            active=false;
+
         buffer.flip();
         byte[] bytes = new byte[buffer.limit()];
         buffer.get(bytes);
         String message = new String(bytes, StandardCharsets.UTF_8);
+        if(message.equals("Testing 01"))
+            Thread.sleep(5000);
+
         System.out.println("Echo server received: {}" + message);
-        if (message.trim().equals("bye")) {
-            active = false;
-        }
 
         buffer.flip();
         socketChannel.register(selector, SelectionKey.OP_WRITE, buffer);
@@ -85,12 +88,13 @@ public class NioSelectorEchoServer {
         SocketChannel socketChannel = (SocketChannel) key.channel();
         ByteBuffer buffer = (ByteBuffer) key.attachment();
         socketChannel.write(buffer); // can be non-blocking
-        socketChannel.close();
+//        socketChannel.close();
 
         buffer.flip();
         byte[] bytes = new byte[buffer.limit()];
         buffer.get(bytes);
         String message = new String(bytes, StandardCharsets.UTF_8);
         System.out.println("Echo server sent: {}" + message);
+        socketChannel.register(selector, SelectionKey.OP_READ, bytes);
     }
 }
