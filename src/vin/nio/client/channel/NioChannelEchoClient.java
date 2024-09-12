@@ -22,7 +22,7 @@ public class NioChannelEchoClient {
 //        while ((message = stdIn.readLine()) != null) {
         for (String message : messages) {
             Thread.sleep(1000);
-//            executorService.submit(() -> {
+            executorService.submit(() -> {
                 System.out.println("Echo client started: {}" + socketChannel);
                 try {
 
@@ -47,11 +47,11 @@ public class NioChannelEchoClient {
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
-//            });
+            });
         }
 //        socketChannel.close();
 //        executorService.shutdown();
-        System.out.println("Echo client disconnected");
+//        System.out.println("Echo client disconnected");
 
     }
 }
