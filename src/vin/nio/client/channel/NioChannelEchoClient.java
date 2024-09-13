@@ -30,19 +30,20 @@ public class NioChannelEchoClient {
                     socketChannel.write(buffer);
                     System.out.println("Echo client sent: {}" + message);
 
+                    ByteBuffer responseBuffer = ByteBuffer.allocate(1024);
                     int totalRead = 0;
                     while (totalRead < message.getBytes().length) {
                         buffer.clear();
 
-                        int read = socketChannel.read(buffer);
+                        int read = socketChannel.read(responseBuffer);
                         System.out.println("Echo client read: {} byte(s)" + read);
                         if (read <= 0)
                             break;
 
                         totalRead += read;
 
-                        buffer.flip();
-                        System.out.println("Echo client received: {}" + StandardCharsets.UTF_8.newDecoder().decode(buffer));
+                        responseBuffer.flip();
+                        System.out.println("Echo client received: {}" + StandardCharsets.UTF_8.newDecoder().decode(responseBuffer));
                     }
                 } catch (Exception e) {
                     throw new RuntimeException(e);
